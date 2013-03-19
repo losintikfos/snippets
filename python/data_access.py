@@ -35,10 +35,10 @@ class DataAccess(object):
     if(self.connection is not None) and (self.db is not None):
       try:
         id = self.db.network.insert({
-                                       'ip_addr': "192.168.0.1",
-                                       'is_gateway': True,
-                                       'mac_addr' : 'ad:3c:0c:h7:4f'
-                                       })
+         'ip_addr': "192.168.0.1",
+          'is_gateway': True,
+          'mac_addr' : 'ad:3c:0c:h7:4f'
+          })
         print 'network with id ->', id, 'inserted into database'
       except RuntimeError as e:
          print "Error Occured while performing insert({0}): {1}\
