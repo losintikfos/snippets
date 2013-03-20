@@ -59,7 +59,9 @@ loop until value_pair.end() |key|
 
 '''
 from ryu.base.app_manager import RyuApp
-from ryu.ofproto import ether
+from ryu.ofproto import ether, ofproto_v1_2
+from ryu.controller import dpset
+from ryu.controller.handler import set_ev_cls
 
 class SimulateStargateVlan(RyuApp):
     
