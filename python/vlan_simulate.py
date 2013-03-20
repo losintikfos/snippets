@@ -161,6 +161,12 @@ class SimulateStargateVlan(RyuApp):
         if event.enter:
             logger.info("@@@@ Installing flow for VLAN+++++++")
             self.install_vpn_flow(event.dp)
+
+
+    @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
+    def _port_status_handler(self, ev):
+        msg = ev.msg
+        logger.info(">>>>>>>>>>>>>> debuggin %s", msg.datapath)
     
 if(__name__ == "__main__"):
     if False:
