@@ -62,6 +62,9 @@ from ryu.base.app_manager import RyuApp
 from ryu.ofproto import ether, ofproto_v1_2
 from ryu.controller import dpset
 from ryu.controller.handler import set_ev_cls
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SimulateStargateVlan(RyuApp):
     
@@ -113,10 +116,8 @@ class SimulateStargateVlan(RyuApp):
     '''
     def tag_customer_vlan(self, alue, vlan_id, datapath):
         for port in value:
-            print "Tagging port=>", port, "with VLAN_ID =>", vlan_id
-            self.tag_vlan(port, vlan_id, datapath)
-        print '\n',
-    
+            logger.debug("Tagging port=> %s with VLAN ID %s", port, vlan_id)
+            self.tag_vlan(port, vlan_id, datapath)    
     
     '''
     Ethertype: 0x88a8
@@ -128,7 +129,7 @@ class SimulateStargateVlan(RyuApp):
     
     def tag_trunk_vlan(value, trunk_id, datapath):
         for port in value:
-            print "Tagging port=>", port, "with TRUNK_ID", trunk_id
+            logger.debug("Tagging port=> %s with TRUNK_ID => %s", port, trunk_id)
             self.tag_trunk(port, trunk_id, datapath)
     
     
@@ -142,7 +143,6 @@ class SimulateStargateVlan(RyuApp):
         
         trunk_id, vlan_id = -1, -1
         for key, value in reversed(value_pair.items()):
-            print key, "=>", value
             
             if'cust' in key:
                 vlan_id += 1
@@ -153,8 +153,8 @@ class SimulateStargateVlan(RyuApp):
                 self.tag_trunk_vlan(value, trunk_id, datapath)
     
     '''
-    Install DataPath event dispatcher to invoke this method
-    anytime there's event dispatched to the DataPath from controller
+    Install DataPath event dispatcher to invoke this method,
+    anytime there's event dispatched to the DataPath from controller.
     '''
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
