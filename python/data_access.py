@@ -43,7 +43,9 @@ class DataAccess(object):
       except RuntimeError as e:
          print "Error Occured while performing insert({0}): {1}\
          ".format(e.errno, e.strerror)
-    
-b = DataAccess()
-b.fetch()
-b.insert();
+         
+        
+if __name__=="__main__":
+    b = DataAccess()
+    b.fetch()
+    b.insert();
