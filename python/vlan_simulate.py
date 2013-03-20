@@ -159,6 +159,7 @@ class SimulateStargateVlan(RyuApp):
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
         if event.enter:
+            logger.info("@@@@ Installing flow for VLAN+++++++")
             self.install_vpn_flow(event.dp)
     
 if(__name__ == "__main__"):
