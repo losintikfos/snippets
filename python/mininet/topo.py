@@ -56,9 +56,7 @@ class SimulatingVlanTopo(Topo):
      
     
     def assign_ipv4_addr(self):
-        hosts = self.nodes()
-        #for host in hosts:
-            #if(host.isSwitch()):
+        pass
                 
         
 
