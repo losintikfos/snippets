@@ -183,10 +183,3 @@ class SimulateStargateVlan(RyuApp):
     def _port_status_handler(self, ev):
         msg = ev.msg
         logger.info(">>>>>>>>>>>>>> debuggin %s", msg.datapath)
-    
-if(__name__ == "__main__"):
-    if False:
-        h = 7
-        while  h:
-            print (h  if ((h - 1) > -1) else h + 1) 
-            h -= 1
