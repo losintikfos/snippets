@@ -76,18 +76,19 @@ class SimulateStargateVlan(RyuApp):
     OFP_VERSIONS = [ofproto_v1_2.OFP_VERSION]
     
     SWITCH_PORTS = {
-                  's1-eth1':2,
-                  's1-eth2':3,
-                  's1-eth3':4,
-                  's1-eth4':5,
-                  's2-eth1':7,
-                  's2-eth2':8,
-                  's2-eth3':9,
-                  's2-eth4':10,
-                  's3-eth1':12,
-                  's3-eth2':13,
-                  's3-eth3':14,
-                  's3-eth4':15}
+                  's1-eth1' :   2,
+                  's1-eth2' :   3,
+                  's1-eth3' :   4,
+                  's1-eth4' :   5,
+                  's2-eth1' :   7,
+                  's2-eth2' :   8,
+                  's2-eth3' :   9,
+                  's2-eth4' :   10,
+                  's3-eth1' :   12,
+                  's3-eth2' :   13,
+                  's3-eth3' :   14,
+                  's3-eth4' :   15
+                  }
     
     def __init__(self, *_args, **_kvargs):
        super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
@@ -129,10 +130,10 @@ class SimulateStargateVlan(RyuApp):
     Add customer host(s) to VLAN using Q-in-Q.
     Ethertype: 0x8100, 0x88a8
     '''
-    def tag_customer_vlan(self, value, vlan_id, datapath):
-        for port in value:
-            logger.debug("Tagging port=> %s with VLAN ID %s", port, vlan_id)
-            self.tag_vlan(port, vlan_id, datapath)    
+    def tag_customer_vlan(self, labels, vlan_id, datapath):
+        for label in labels:
+            logger.debug("Tagging port=> %s with VLAN ID %s", SWITCH_PORTS[label], vlan_id)
+            self.tag_vlan(SWITCH_PORTS[label], vlan_id, datapath)    
     
     '''
     Ethertype: 0x88a8
@@ -142,10 +143,10 @@ class SimulateStargateVlan(RyuApp):
         self._add_flow(datapath, self.build_match(port), actions)
     
     
-    def tag_trunk_vlan(value, trunk_id, datapath):
-        for port in value:
-            logger.debug("Tagging port=> %s with TRUNK_ID => %s", port, trunk_id)
-            self.tag_trunk(port, trunk_id, datapath)
+    def tag_trunk_vlan(labels, trunk_id, datapath):
+        for label in labels:
+            logger.debug("Tagging port=> %s with TRUNK_ID => %s", SWITCH_PORTS[label], trunk_id)
+            self.tag_trunk(SWITCH_PORTS[label], trunk_id, datapath)
     
     
     def install_vpn_flow(datapath):
@@ -157,15 +158,15 @@ class SimulateStargateVlan(RyuApp):
                       'trunk'    :    ['s1-eth4', 's2-por4', 's3-eth4']}
         
         trunk_id, vlan_id = -1, -1
-        for key, value in reversed(value_pair.items()):
+        for key, labels in reversed(value_pair.items()):
             
             if'cust' in key:
                 vlan_id += 1
-                self.tag_customer_vlan(value, vlan_id, datapath)
+                self.tag_customer_vlan(labels, vlan_id, datapath)
         
             elif 'trunk' in key:
                 trunk_id += 1
-                self.tag_trunk_vlan(value, trunk_id, datapath)
+                self.tag_trunk_vlan(labels, trunk_id, datapath)
     
     '''
     Install DataPath event dispatcher to invoke this method,
