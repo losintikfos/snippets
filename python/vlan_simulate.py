@@ -75,6 +75,20 @@ class SimulateStargateVlan(RyuApp):
     _CONTEXTS = {'dpset': dpset.DPSet}
     OFP_VERSIONS = [ofproto_v1_2.OFP_VERSION]
     
+    SWITCH_PORTS = {
+                  's1-eth1':2,
+                  's1-eth2':3,
+                  's1-eth3':4,
+                  's1-eth4':5,
+                  's2-eth1':7,
+                  's2-eth2':8,
+                  's2-eth3':9,
+                  's2-eth4':10,
+                  's3-eth1':12,
+                  's3-eth2':13,
+                  's3-eth3':14,
+                  's3-eth4':15}
+    
     def __init__(self, *_args, **_kvargs):
        super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
 
@@ -115,7 +129,7 @@ class SimulateStargateVlan(RyuApp):
     Add customer host(s) to VLAN using Q-in-Q.
     Ethertype: 0x8100, 0x88a8
     '''
-    def tag_customer_vlan(self, alue, vlan_id, datapath):
+    def tag_customer_vlan(self, value, vlan_id, datapath):
         for port in value:
             logger.debug("Tagging port=> %s with VLAN ID %s", port, vlan_id)
             self.tag_vlan(port, vlan_id, datapath)    
@@ -137,10 +151,10 @@ class SimulateStargateVlan(RyuApp):
     def install_vpn_flow(datapath):
         # Static value of customer and aggregated switch ports
         # Note this value is use purposely for test only
-        value_pair = {'cust1'    :    ['s0_eth1', 's0_eth2'],
-                      'cust2'    :    ['s1_eth1', 's1_eth2', 's0_eth3'],
-                      'cust3'    :    ['s2_eth0', 's2_eth1', 's1_eth3'],
-                      'trunk'    :    ['s0_eth4', 's1_por4', 's2_eth4']}
+        value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2'],
+                      'cust2'    :    ['s2-eth1', 's2-eth2', 's1-eth3'],
+                      'cust3'    :    ['s3-eth0', 's3_eth1', 's2-eth3'],
+                      'trunk'    :    ['s1-eth4', 's2-por4', 's3-eth4']}
         
         trunk_id, vlan_id = -1, -1
         for key, value in reversed(value_pair.items()):
