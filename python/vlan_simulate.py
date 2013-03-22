@@ -1,12 +1,3 @@
-
-from ryu.base import app_manager
-from ryu.ofproto import ether, ofproto_v1_2
-from ryu.controller import dpset, ofp_event
-from ryu.controller.handler import set_ev_cls
-from ryu.controller.handler import MAIN_DISPATCHER
-import logging
-
-logger = logging.getLogger(__name__)
 '''
 Requirement psuedocode:
 @author: bdadson
@@ -67,6 +58,16 @@ loop until value_pair.end() |key|
 ))
 
 '''
+
+from ryu.base import app_manager
+from ryu.ofproto import ether, ofproto_v1_2
+from ryu.controller import dpset, ofp_event
+from ryu.controller.handler import set_ev_cls
+from ryu.controller.handler import MAIN_DISPATCHER
+import logging
+
+logger = logging.getLogger(__name__)
+
 class SimulateStargateVlan(app_manager.RyuApp):
 
     VLAN_TAG_802_1Q = 0x8100  # VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq
