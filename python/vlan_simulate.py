@@ -72,8 +72,8 @@ class SimulateStargateVlan(app_manager.RyuApp):
     _CONTEXTS = {'dpset': dpset.DPSet}
     OFP_VERSIONS = [ofproto_v1_2.OFP_VERSION]
 
-    def __init__(self, *args, **kwargs):
-        super(SimulateStargateVlan, self).__init__(*args, **kwargs)
+    def __init__(self, *_args, **_kvargs):
+       super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
   
     def install_vpn_flow(self, dp):
         logger.info("++++++++++++++++++++++++++")
