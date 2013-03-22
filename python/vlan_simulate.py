@@ -68,29 +68,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+#static ports for testing
+SWITCH_PORTS = {
+                's1-eth1' :   2,
+                's1-eth2' :   3,
+                's1-eth3' :   4,
+                's1-eth4' :   5,
+                's2-eth1' :   7,
+                's2-eth2' :   8,
+                's2-eth3' :   9,
+                's2-eth4' :   10,
+                's3-eth1' :   12,
+                's3-eth2' :   13,
+                's3-eth3' :   14,
+                's3-eth4' :   15
+                }
+
+#static VLAN Ethertypes for testing
+VLAN_TAG_802_1Q = 0x8100  # VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq
+BRIDGE_TAG_802_1AD = 0x88A8  # Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq
+    
+    
 class SimulateStargateVlan(app_manager.RyuApp):
 
-     
-    VLAN_TAG_802_1Q = 0x8100  # VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq
-    BRIDGE_TAG_802_1AD = 0x88A8  # Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq
-    
     _CONTEXTS = {'dpset': dpset.DPSet}
     OFP_VERSIONS = [ofproto_v1_2.OFP_VERSION]
-    
-    SWITCH_PORTS = {
-                  's1-eth1' :   2,
-                  's1-eth2' :   3,
-                  's1-eth3' :   4,
-                  's1-eth4' :   5,
-                  's2-eth1' :   7,
-                  's2-eth2' :   8,
-                  's2-eth3' :   9,
-                  's2-eth4' :   10,
-                  's3-eth1' :   12,
-                  's3-eth2' :   13,
-                  's3-eth3' :   14,
-                  's3-eth4' :   15
-                  }
     
     def __init__(self, *_args, **_kvargs):
        super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
@@ -147,7 +149,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def tag_trunk_vlan(self, labels, trunk_id, datapath):
         for label in labels:
             logger.debug("Tagging port=> %s with TRUNK_ID => %s", SWITCH_PORTS[label], trunk_id)
-            self.tag_trunk(SWITCH_PORTS[label], trunk_id, datapath)
+            self.tag_trunk(self.SWITCH_PORTS[label], trunk_id, datapath)
     
     
     def install_vpn_flow(self, datapath):
