@@ -126,7 +126,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
          if port is not None:
             logger.debug("Tagging port=> %s with VLAN ID => %s with Label => %s",
                           port.port_no, port.name)
-            self.tag_vlan(port, vlan_id, datapath)    
+            self.tag_vlan(port.port_no, vlan_id, datapath)    
     
     '''
     Ethertype: 0x88a8
@@ -142,7 +142,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
         if port is not None:
             logger.debug("Tagging port=> %s with TRUNK_ID => %s with Label => %s",
                          port.port_no, trunk_id, port.name)
-            self.tag_trunk(port, trunk_id, datapath)
+            self.tag_trunk(port.port_no, trunk_id, datapath)
     
     def _get_port_number(self, labels, datapath):
         
@@ -193,3 +193,4 @@ class SimulateStargateVlan(app_manager.RyuApp):
         logger.info("packet reason=%d buffer_id=%d", msg.reason, msg.buffer_id)
         LOG.info("packet in datapath_id=%s src=%s dst=%s",
                  msg.datapath.id, haddr_to_str(src), haddr_to_str(dst))
+        
