@@ -139,18 +139,18 @@ class SimulateStargateVlan(app_manager.RyuApp):
     '''
     Ethertype: 0x88a8
     '''
-    def tag_trunk(port, trunk_id, datapath):
+    def tag_trunk(self, port, trunk_id, datapath):
         actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD)]
         self._add_flow(datapath, self.build_match(port), actions)
     
     
-    def tag_trunk_vlan(labels, trunk_id, datapath):
+    def tag_trunk_vlan(self, labels, trunk_id, datapath):
         for label in labels:
             logger.debug("Tagging port=> %s with TRUNK_ID => %s", SWITCH_PORTS[label], trunk_id)
             self.tag_trunk(SWITCH_PORTS[label], trunk_id, datapath)
     
     
-    def install_vpn_flow(datapath):
+    def install_vpn_flow(self, datapath):
         # Static value of customer and aggregated switch ports
         # Note this value is use purposely for test only
         value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2'],
@@ -174,10 +174,10 @@ class SimulateStargateVlan(app_manager.RyuApp):
     anytime there's event dispatched to the DataPath from controller.
     '''
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
-    def handler_datapath(self, ev):
-        if ev.enter:
+    def handler_datapath(self, event):
+        if event.enter:
             logger.info('+++++++Installing VLAN Flow +++++')
-            self.install_vpn_flow(ev.dp)
+            self.install_vpn_flow(event.dp)
 
 
     @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
