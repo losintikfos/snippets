@@ -70,6 +70,7 @@ logger = logging.getLogger(__name__)
 
 class SimulateStargateVlan(app_manager.RyuApp):
 
+     
     VLAN_TAG_802_1Q = 0x8100  # VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq
     BRIDGE_TAG_802_1AD = 0x88A8  # Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq
     
@@ -93,10 +94,85 @@ class SimulateStargateVlan(app_manager.RyuApp):
     
     def __init__(self, *_args, **_kvargs):
        super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
-  
-    def install_vpn_flow(self, dp):
-        logger.info("++++++++++++++++++++++++++")
+
+    '''
+    Add  a new flow entry to the the switch flow table
     
+    '''
+    def _add_flow(self, datapath, match, actions):
+        inst = [datapath.ofproto_parser.OFPInstructionActions(
+            datapath.ofproto.OFPIT_WRITE_ACTIONS, actions)]
+    
+        mod = datapath.ofproto_parser.OFPFlowMod(
+            datapath, cookie=0, cookie_mask=0, table_id=0,
+            command=datapath.ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
+            priority=0xff, buffer_id=0xffffffff,
+            out_port=datapath.ofproto.OFPG_ANY, out_group=datapath.ofproto.OFPG_ANY,
+            flags=0, match=match, instructions=inst)
+        
+        datapath.send_msg(mod)
+        
+    def build_match(self, port):
+        match = datapth.ofproto_parser.OFPMatch()
+        match.set_in_port(port)
+        match.set_dl_type(ether.ETH_TYPE_IP)
+        return match
+    
+    def tag_vlan(self, port, vlan_id, datapath):
+        field = datapath.ofproto_parser.OFPMatchField.make(
+            datapath.ofproto.OXM_OF_VLAN_VID, vlan_id)
+        
+        actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD),
+            datapath.ofproto_parser.OFPActionPushVlan(VLAN_TAG_802_1Q),
+            datapath.ofproto_parser.OFPActionSetField(field)]
+        self._add_flow(datapath, self.build_match(port), actions)
+    
+    '''
+    Add customer host(s) to VLAN using Q-in-Q.
+    Ethertype: 0x8100, 0x88a8
+    '''
+    def tag_customer_vlan(self, labels, vlan_id, datapath):
+        for label in labels:
+            logger.debug("Tagging port=> %s with VLAN ID %s", SWITCH_PORTS[label], vlan_id)
+            self.tag_vlan(SWITCH_PORTS[label], vlan_id, datapath)    
+    
+    '''
+    Ethertype: 0x88a8
+    '''
+    def tag_trunk(port, trunk_id, datapath):
+        actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD)]
+        self._add_flow(datapath, self.build_match(port), actions)
+    
+    
+    def tag_trunk_vlan(labels, trunk_id, datapath):
+        for label in labels:
+            logger.debug("Tagging port=> %s with TRUNK_ID => %s", SWITCH_PORTS[label], trunk_id)
+            self.tag_trunk(SWITCH_PORTS[label], trunk_id, datapath)
+    
+    
+    def install_vpn_flow(datapath):
+        # Static value of customer and aggregated switch ports
+        # Note this value is use purposely for test only
+        value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2'],
+                      'cust2'    :    ['s2-eth1', 's2-eth2', 's1-eth3'],
+                      'cust3'    :    ['s3-eth0', 's3_eth1', 's2-eth3'],
+                      'trunk'    :    ['s1-eth4', 's2-por4', 's3-eth4']}
+        
+        trunk_id, vlan_id = -1, -1
+        for key, labels in reversed(value_pair.items()):
+            
+            if'cust' in key:
+                vlan_id += 1
+                self.tag_customer_vlan(labels, vlan_id, datapath)
+        
+            elif 'trunk' in key:
+                trunk_id += 1
+                self.tag_trunk_vlan(labels, trunk_id, datapath)
+    
+    '''
+    Install DataPath event dispatcher to invoke this method,
+    anytime there's event dispatched to the DataPath from controller.
+    '''
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
         if event.enter:
@@ -108,4 +184,3 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def _port_status_handler(self, ev):
         msg = ev.msg
         logger.info(">>>>>>>>>>>>>> debuggin %s", msg.datapath)
-
