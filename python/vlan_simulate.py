@@ -17,10 +17,10 @@ cust      = customer
 (def:
 
 value_pair=({
-    cust1    :    [s0_eth1, s0_eth2]
-    cust2    :    [s1_eth1, s1_eth2, s0_eth3]
-    cust3    :    [s2_eth0, s2_eth1, s1_eth3]
-    trunk    :    [s0_eth4, s1_por4, s2_eth4]
+            'cust1'    :    ['s1-eth1', 's1-eth2', 's3-eth3'],
+            'cust2'    :    ['s2-eth1', 's2-eth2', 's1-eth3'],
+            'cust3'    :    ['s3-eth1', 's3_eth2', 's2-eth3'],
+            'trunk'    :    ['s1-eth4', 's2-eth4', 's3-eth4']
 })
 
 loop until value_pair.end() |key|
@@ -155,10 +155,10 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def install_vpn_flow(self, datapath):
         # Static value of customer and aggregated switch ports
         # Note this value is use purposely for test only
-        value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2'],
+        value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2', 's3-eth3'],
                       'cust2'    :    ['s2-eth1', 's2-eth2', 's1-eth3'],
-                      'cust3'    :    ['s3-eth0', 's3_eth1', 's2-eth3'],
-                      'trunk'    :    ['s1-eth4', 's2-por4', 's3-eth4']}
+                      'cust3'    :    ['s3-eth1', 's3_eth2', 's2-eth3'],
+                      'trunk'    :    ['s1-eth4', 's2-eth4', 's3-eth4']}
         
         trunk_id, vlan_id = -1, -1
         for key, labels in reversed(value_pair.items()):
