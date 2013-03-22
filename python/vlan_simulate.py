@@ -157,7 +157,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
         # Note this value is use purposely for test only
         value_pair = {'cust1'    :    ['s1-eth1', 's1-eth2', 's3-eth3'],
                       'cust2'    :    ['s2-eth1', 's2-eth2', 's1-eth3'],
-                      'cust3'    :    ['s3-eth1', 's3_eth2', 's2-eth3'],
+                      'cust3'    :    ['s3-eth1', 's3-eth2', 's2-eth3'],
                       'trunk'    :    ['s1-eth4', 's2-eth4', 's3-eth4']}
         
         trunk_id, vlan_id = -1, -1
