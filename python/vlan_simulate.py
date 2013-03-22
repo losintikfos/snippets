@@ -123,8 +123,9 @@ class SimulateStargateVlan(app_manager.RyuApp):
     '''
     def tag_customer_vlan(self, labels, vlan_id, datapath):
          port = self._get_port_number(labels, datapath)
-         if port > -1:
-            logger.debug("Tagging port=> %s with VLAN ID %s", port, vlan_id)
+         if port is not None:
+            logger.debug("Tagging port=> %s with VLAN ID => %s with Label => %s",
+                          port.port_no, port.name)
             self.tag_vlan(port, vlan_id, datapath)    
     
     '''
@@ -138,8 +139,9 @@ class SimulateStargateVlan(app_manager.RyuApp):
     
     def tag_trunk_vlan(self, labels, trunk_id, datapath):
         port = self._get_port_number(labels, datapath)
-        if port > -1:
-            logger.debug("Tagging port=> %s with TRUNK_ID => %s", port, trunk_id)
+        if port is not None:
+            logger.debug("Tagging port=> %s with TRUNK_ID => %s with Label => %s",
+                         port.port_no, trunk_id, port.name)
             self.tag_trunk(port, trunk_id, datapath)
     
     def _get_port_number(self, labels, datapath):
@@ -153,8 +155,8 @@ class SimulateStargateVlan(app_manager.RyuApp):
         for label in labels:
             port = is_switch_label(label) 
             if port is not None:
-                return port.port_no 
-        return -1
+                return port 
+        return None
     
     def install_vpn_flow(self, datapath):
         # Static value of customer and aggregated switch ports
@@ -176,7 +178,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
         if event.enter:
-             logger.info('+++++++Installing VLAN Flow +++++')
+             logger.info("* 802.1ad Tagging")
              self.install_vpn_flow(event.dp)
             # self.is_installed = True
 
