@@ -15,8 +15,10 @@ class SimulateStargateVlan(RyuApp):
    
     def __init__(self, *_args, **_kvargs):
        super(SimulateStargateVlan, self).__init__(*_args, **_kvargs)
-
-   
+  
+    def _define_flow(self, dp):
+        pass
+    
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
         if event.enter:
