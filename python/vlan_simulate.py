@@ -16,25 +16,18 @@ class BrightVLANTest(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(BrightVLANTest, self).__init__(*args, **kwargs)
   
-    def _define_flow(self, dp):
+    def install_vpn_flow(self, dp):
         logger.info("++++++++++++++++++++++++++")
     
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
-    def handler_datapath(self, ev):
-        logger.info("<<>><><><><><><><><><><><><>")
-        if ev.enter:
-            self._define_flow(ev.dp)
+    def handler_datapath(self, event):
+        if event.enter:
+            logger.info("@@@@ Installing flow for VLAN+++++++")
+            self.install_vpn_flow(event.dp)
 
-    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
-    def packet_in_handler(self, ev):
+
+    @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
+    def _port_status_handler(self, ev):
         msg = ev.msg
-        dst, src, eth_type = struct.unpack_from('!6s6sH', buffer(msg.data), 0)
-        in_port = msg.match.fields[0].value
-
-        LOG.info("----------------------------------------")
-        LOG.info("* PacketIn")
-        LOG.info("in_port=%d, eth_type: %s", in_port, hex(eth_type))
-        LOG.info("packet reason=%d buffer_id=%d", msg.reason, msg.buffer_id)
-        LOG.info("packet in datapath_id=%s src=%s dst=%s",
-                 msg.datapath.id, haddr_to_str(src), haddr_to_str(dst))
+        logger.info(">>>>>>>>>>>>>> debuggin %s", msg.datapath)
 
