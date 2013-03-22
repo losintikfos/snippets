@@ -59,7 +59,7 @@ loop until value_pair.end() |key|
 
 '''
 
-from ryu.base import app_manager
+from ryu.base.app_manager import RyuApp
 from ryu.ofproto import ether, ofproto_v1_2
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import set_ev_cls
@@ -68,7 +68,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class SimulateStargateVlan(app_manager.RyuApp):
+class SimulateStargateVlan(RyuApp):
 
     VLAN_TAG_802_1Q = 0x8100  # VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq
     BRIDGE_TAG_802_1AD = 0x88A8  # Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq
