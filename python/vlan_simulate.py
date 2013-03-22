@@ -174,10 +174,10 @@ class SimulateStargateVlan(app_manager.RyuApp):
     anytime there's event dispatched to the DataPath from controller.
     '''
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
-    def handler_datapath(self, event):
-        if event.enter:
-            logger.info("@@@@ Installing flow for VLAN+++++++")
-            self.install_vpn_flow(event.dp)
+    def handler_datapath(self, ev):
+        if ev.enter:
+            logger.info('+++++++Installing VLAN Flow +++++')
+            self.install_vpn_flow(ev.dp)
 
 
     @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
