@@ -8,20 +8,20 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class RunTestMininet(app_manager.RyuApp):
+class BrightVLANTest(app_manager.RyuApp):
 
     _CONTEXTS = {'dpset': dpset.DPSet}
     OFP_VERSIONS = [ofproto_v1_2.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(RunTestMininet, self).__init__(*args, **kwargs)
+        super(BrightVLANTest, self).__init__(*args, **kwargs)
   
     def _define_flow(self, dp):
         logger.info("++++++++++++++++++++++++++")
     
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, ev):
-        LOG.info("<<>><><><><><><><><><><><><>")
+        logger.info("<<>><><><><><><><><><><><><>")
         if ev.enter:
             self._define_flow(ev.dp)
 
