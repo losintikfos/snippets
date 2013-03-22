@@ -114,8 +114,8 @@ class SimulateStargateVlan(app_manager.RyuApp):
         
         datapath.send_msg(mod)
         
-    def build_match(self, port):
-        match = datapth.ofproto_parser.OFPMatch()
+    def build_match(self, datapath, port):
+        match = datapath.ofproto_parser.OFPMatch()
         match.set_in_port(port)
         match.set_dl_type(ether.ETH_TYPE_IP)
         return match
@@ -127,7 +127,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
         actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD),
             datapath.ofproto_parser.OFPActionPushVlan(VLAN_TAG_802_1Q),
             datapath.ofproto_parser.OFPActionSetField(field)]
-        self._add_flow(datapath, self.build_match(port), actions)
+        self._add_flow(datapath, self.build_match(datapath, port), actions)
     
     '''
     Add customer host(s) to VLAN using Q-in-Q.
@@ -143,7 +143,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
     '''
     def tag_trunk(self, port, trunk_id, datapath):
         actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD)]
-        self._add_flow(datapath, self.build_match(port), actions)
+        self._add_flow(datapath, self.build_match(datapath, port), actions)
     
     
     def tag_trunk_vlan(self, labels, trunk_id, datapath):
