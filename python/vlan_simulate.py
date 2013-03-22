@@ -149,7 +149,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def tag_trunk_vlan(self, labels, trunk_id, datapath):
         for label in labels:
             logger.debug("Tagging port=> %s with TRUNK_ID => %s", SWITCH_PORTS[label], trunk_id)
-            self.tag_trunk(self.SWITCH_PORTS[label], trunk_id, datapath)
+            self.tag_trunk(SWITCH_PORTS[label], trunk_id, datapath)
     
     
     def install_vpn_flow(self, datapath):
