@@ -63,7 +63,10 @@ from ryu.ofproto import ether, ofproto_v1_2, inet
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import set_ev_cls
 from ryu.controller.handler import MAIN_DISPATCHER
+from ryu.lib.mac import haddr_to_str
+
 import logging
+import struct
 
 logger = logging.getLogger(__name__)
 
@@ -88,13 +91,13 @@ class SimulateStargateVlan(app_manager.RyuApp):
     '''
     def _add_flow(self, datapath, match, actions):
         inst = [datapath.ofproto_parser.OFPInstructionActions(
-            datapath.ofproto.OFPIT_WRITE_ACTIONS, actions)]
-    
+            datapath.ofproto.OFPIT_APPLY_ACTIONS, actions)]
+
         mod = datapath.ofproto_parser.OFPFlowMod(
             datapath, cookie=0, cookie_mask=0, table_id=0,
             command=datapath.ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
             priority=0xff, buffer_id=0xffffffff,
-            out_port=datapath.ofproto.OFPG_ANY, out_group=datapath.ofproto.OFPG_ANY,
+            out_port=datapath.ofproto.OFPP_ANY, out_group=datapath.ofproto.OFPG_ANY,
             flags=0, match=match, instructions=inst)
         
         datapath.send_msg(mod)
@@ -106,25 +109,23 @@ class SimulateStargateVlan(app_manager.RyuApp):
         return match
     
     def tag_vlan(self, port, vlan_id, datapath):
-        field = datapath.ofproto_parser.OFPMatchField.make(
-            datapath.ofproto.OXM_OF_VLAN_VID, vlan_id)
-        
         match = self.build_match(datapath, port)
         match.set_vlan_vid(vlan_id)
 
-        actions = [datapath.ofproto_parser.OFPActionPushVlan(BRIDGE_TAG_802_1AD),
-            datapath.ofproto_parser.OFPActionPushVlan(VLAN_TAG_802_1Q),
-            datapath.ofproto_parser.OFPActionSetField(field)]
+        field = datapath.ofproto_parser.OFPMatchField.make(
+            datapath.ofproto.OXM_OF_VLAN_VID, vlan_id)
+        actions = [datapath.ofproto_parser.OFPActionPushVlan(VLAN_TAG_802_1Q),
+                   datapath.ofproto_parser.OFPActionSetField(field)]
         self._add_flow(datapath, match, actions)
     
     '''
-    Add customer host(s) to VLAN using Q-in-Q.
-    Ethertype: 0x8100, 0x88a8
+    Add 801.2Q tag
+    Ethertype: 0x8100
     '''
     def tag_customer_vlan(self, labels, vlan_id, datapath):
          port = self._get_port_number(labels, datapath)
          if port is not None:
-            logger.debug("Tagging port=> %s with VLAN ID => %s with Label => %s",
+            logger.debug("--- Tagging port=> %s with VLAN ID => %s with Label => %s",
                          port.port_no, vlan_id, port.name)
             self.tag_vlan(port.port_no, vlan_id, datapath)    
     
@@ -140,7 +141,7 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def tag_trunk_vlan(self, labels, trunk_id, datapath):
         port = self._get_port_number(labels, datapath)
         if port is not None:
-            logger.debug("Tagging port=> %s with TRUNK_ID => %s with Label => %s",
+            logger.debug("--- Tagging port=> %s with TRUNK_ID => %s with Label => %s",
                          port.port_no, trunk_id, port.name)
             self.tag_trunk(port.port_no, trunk_id, datapath)
     
@@ -161,15 +162,16 @@ class SimulateStargateVlan(app_manager.RyuApp):
     def install_vpn_flow(self, datapath):
         # Static value of customer and aggregated switch ports
         # Note this value is use purposely for test only        
-        trunk_id, vlan_id = 1, 1
+        trunk_id, vlan_id = 1, 100
         for key, labels in reversed(self.value_pair.items()):
             if'cust' in key:
                 vlan_id += 1
                 self.tag_customer_vlan(labels, vlan_id, datapath)
         
-            elif 'trunk' in key:
-                trunk_id += 1
-                self.tag_trunk_vlan(labels, trunk_id, datapath)
+            #elif 'trunk' in key:
+                #trunk_id += 1
+                #self.tag_trunk_vlan(labels, trunk_id, datapath)
+        logger.info("")
     
     '''
     Install DataPath event dispatcher to invoke this method,
@@ -178,18 +180,24 @@ class SimulateStargateVlan(app_manager.RyuApp):
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, event):
         if event.enter:
-             logger.info("* 802.1ad Tagging")
+             logger.info("++++++ Installing VLAN ++++++")
+             #logger.info(event.dp.ports)
              self.install_vpn_flow(event.dp)
-            # self.is_installed = True
 
 
-    @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
-    def _port_status_handler(self, ev):
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def packet_in_handler(self, ev):
+        msg = ev.msg
         dst, src, eth_type = struct.unpack_from('!6s6sH', buffer(msg.data), 0)
-        in_port = msg.match.fields[0].value
-        logger.info("----------------------------------------")
-        logger.info("* PacketIn")
-        logger.info("in_port=%d, eth_type: %s", in_port, hex(eth_type))
-        logger.info("packet reason=%d buffer_id=%d", msg.reason, msg.buffer_id)
-        LOG.info("packet in datapath_id=%s src=%s dst=%s",
-                 msg.datapath.id, haddr_to_str(src), haddr_to_str(dst))
+        
+        match = msg.match.fields
+        for field in match:
+            logger.info("FIELDS==> %s ",field.value)
+        
+        logger.info("")
+#        logger.info("----------------------------------------")
+#        logger.info("* PacketIn")
+#        logger.info("in_port=%d, eth_type: %s", in_port, hex(eth_type))
+#        logger.info("packet reason=%d buffer_id=%d", msg.reason, msg.buffer_id)
+#        logger.info("packet in datapath_id=%s src=%s dst=%s",
+#                 msg.datapath.id, haddr_to_str(src), haddr_to_str(dst))
