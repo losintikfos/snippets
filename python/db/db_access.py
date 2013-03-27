@@ -4,8 +4,8 @@ import MySQLdb
 def connection_handler(fn):
     def connect(self):
         try:
-            database = MySQLdb.connect(host="10.100.1.251",
-                user="alan_admin", passwd="66ashtar",
+            database = MySQLdb.connect(host="192.168.0.1",
+                user="alan_admin", passwd="pass",
                 db="_stargate_simulation")
             fn(self, database)
         except RuntimeError as e:
