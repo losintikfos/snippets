@@ -4,8 +4,8 @@ import MySQLdb
 def connection_handler(fn):
     def connect(self):
         try:
-            database = MySQLdb.connect(host="192.168.0.1",
-                user="alan_admin", passwd="pass",
+            database = MySQLdb.connect(host="192.168.0.13",
+                user="bdadson", passwd="pass",
                 db="_stargate_simulation")
             fn(self, database)
         except RuntimeError as e:
@@ -21,14 +21,15 @@ class DataAccess(object):
         self.cursor = self.database.cursor()
         self.database.autocommit(True)
  
-    def select(self, command):
+    def select(self, command, bulk=False):
         resultset = None
         
         def fetch():
-            return self.cursor.execute(command)
-        
+             self.cursor.execute(command)
+             return self.cursor.fetchall() if bulk else self.cursor.fetchone ()
+         
         if(self.cursor is not None) and (command is not None):
-            resultset = fetch().fetchall()
+            resultset = fetch()
         return resultset
     
     def commit(self, command, bulk=False):

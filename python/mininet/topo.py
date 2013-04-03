@@ -1,3 +1,23 @@
+
+from mininet.log import debug
+import os
+import sys
+import subprocess
+
+
+# TODO: setuptool
+sys.path.append(str(os.getcwd()) + '/python')
+
+from mininet.cli import CLI, CLI
+from mininet.log import setLogLevel
+from mininet.net import Mininet
+
+from mininet.node import OVSSwitch, RemoteController
+from mininet.topo import Topo
+from network import sql_queries
+from db.db_access import DataAccess
+
+
 '''
 Simulating a three Switch Topology
 @author: bdadson
@@ -34,37 +54,48 @@ Connect the switches together
         +(s1)->(s3)
         ).link()
 '''  
-from mininet.topo import Topo
-from mininet.net import Mininet
 
-from mininet.node import OVSKernelSwitch
-from mininet.cli import CLI
 class SimulatingVlanTopo(Topo):
      
     # default topology with minimum of 1 switch and node
-    def __init__(self, s=1, n=1, **opts):
+    def __init__(self, **opts):
         super(SimulatingVlanTopo, self).__init__(**opts)
-        self.configure(s, n)
-     
+        self.dao = DataAccess()
+        
+    
     def link_switches(self, p_switch, switch):
         if p_switch is not None:
             self.addLink(p_switch, switch)
         return p_switch
     
-    def assign_ipv4_addr(self, switch, host, index):
+    def assign_ipv4_addr(self, host, switch=None, index=0):
+        print "++++++++++++++++++++++++++++Assigning IP address to ", host.name
+        
+        sql = sql_queries.GET_IP_ADDR + repr(host.name)
+        host.setIP(self.dao.select(sql)) 
+        
         def default():
-            print("No switch found matching {0}", switch)
-        {
-            's1': lambda : host.setIP("192.168.0." + str(index + 1)),
-            's2': lambda : host.setIP("192.168.1." + str(index + 1)),
-            's3': lambda : host.setIP("192.168.2." + str(index + 1))
-         }.get(switch, default)()
-         
+            print ("No switch found matching %s", switch)
+            
+        def _sh_(shell_cmd):    
+            p = subprocess.Popen(shell_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            while(True):
+              retcode = p.poll()  # returns None while subprocess is running
+              line = p.stdout.readline()
+              print line
+              if(retcode is not None):
+                break
+            
+        if switch is not None:
+            {'s1': lambda : sh("ovs-vsctl set bridge s1 protocols=OpenFlow10,OpenFlow12,OpenFlow13"),
+                's2': lambda : sh("ovs-vsctl set bridge s2 protocols=OpenFlow10,OpenFlow12,OpenFlow13"),
+                 's3': lambda : sh("ovs-vsctl set bridge s3 protocols=OpenFlow10,OpenFlow12,OpenFlow13")
+            }.get(host.name, default)()   
     
     def configure(self, s, n):
         '''
-        :param s: Switch
-        :param n: Attached nodes to a switch
+        @param s: Switch
+        @param n: Attached nodes to a switch
         '''
         p_switch = None
         for sn in range(s):
@@ -79,23 +110,34 @@ class SimulatingVlanTopo(Topo):
             if (p_switch is not None) and (s in p_switch):
                 self.addLink(p_switch, 's%s' % (s - (s - 1)))
                  
-def _assign_host_ip(fn):
-    if fn is None:
-        return
-    
-    topo = fn();
-    net = Mininet(topo)
-    hosts, switches = net.hosts, net.switches
-     
-    n = 0
-    for node in hosts:
-        print '{0} -> {1} -> {2}'.format(n, node.name, node.name[:2])
-        topo.assign_ipv4_addr(node.name[:2], node, n)
+    def _configure_network(self, s=1, n=1):
+        self.configure(s, n)
+        # TODO: Take controller from database
+        c0 = RemoteController('c0', ip='10.100.1.61')
         
-    for switch in switches:
-        topo.assign_ipv4_addr(switch.name, switch, 0)
+        net = Mininet(self, switch=OVSSwitch, build=False)
+        hosts, switches = net.hosts, net.switches
+        
+        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", hosts
+         
+        for index, node in enumerate(hosts):
+            print ('++++++++++++++>%s', node.name)
+            topo.assign_ipv4_addr(host=node)    
+        
+        for switch in switches:
+            topo.assign_ipv4_addr(host=switch)
             
-fn = lambda : SimulatingVlanTopo(s=3, n=4)
+        net.controllers = [c0]
+        net.build()
+        net.start()
+        
+        CLI(net)
 
-_assign_host_ip(fn)
-topos = {'simulating_vlan_topo': fn}
+        net.stop()
+        
+if __name__ == '__main__':
+    setLogLevel('info') 
+    
+    topo = SimulatingVlanTopo()
+    topo._configure_network(s=3, n=4)
+# #topos = {'simulating_vlan_topo': fn}
