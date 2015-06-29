@@ -1,6 +1,20 @@
 #!/usr/bin/perl
-# Author: bdadson
+
+#  Copyright 2013, Bright Dadson
 #
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You can read it at: http://www.gnu.org/copyleft/gpl.html or
+#  write to the Free Software Foundation, Inc., 59 Temple Place,
+#  Suite 330, Boston, MA  02111-1307  USA
 
 use strict;
 use warnings;
@@ -10,15 +24,17 @@ use Tie::File;
 
 use subs qw(sys_call last_line);
 
-# WARNING!!! Tripple check the hard_drive is pointing to the correct one. And check
+# WARNING!!!
+# WARNING!!! Tripple check the hard_drive is pointing to the correct mount. And check
 # again and again and again. We don't want to loose our data do we? check again.
 #
 # Word of advice "Always tripple check before you use `rm -rf`. Always - consider
 # using `mv` command instead.
 
-my $hard_drive = '/dev/sda';
+my $hard_drive = '/dev/sda';        # Target installation location - Warning! this drive will be formatted.
 my $chroot_dir = '/media/ubuntu';
-my $minnow_sd  = '/dev/mmcblk0p1';
+my $minnow_sd  = '/dev/mmcblk0p1';  # Minnow SD Card
+
 my ( $boot_device, $root_device ) = ( $hard_drive . '1', $hard_drive . '2' );
 my ( $angstrom_efi_loc, $ubuntu_efi_loc ) = ( '/mnt/angstromefi', '/mnt/ubuntuefi' );
 my $mount_check;
